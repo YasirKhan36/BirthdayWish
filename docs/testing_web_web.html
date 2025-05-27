@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Happy Birthday</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+    img {
+      max-width: 90%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    #controls {
+      margin-top: 20px;
+      font-size: 2em;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: white;
+    }
+    p {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <audio id="birthdayMusic" loop>
+    <source src="happy_birthday.mp3" type="audio/mpeg">
+    Your browser does not support the audio tag.
+  </audio>
+
+  <img src="BdayWish_Web.jpeg" alt="Birthday Greeting" />
+  <button id="controls" onclick="toggleAudio()">▶️</button>
+  <p>Wishing you a joyful day</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <script>
+    const audio = document.getElementById('birthdayMusic');
+    const button = document.getElementById('controls');
+
+    function toggleAudio() {
+      if (audio.paused) {
+        audio.play();
+        button.textContent = '⏸';
+      } else {
+        audio.pause();
+        button.textContent = '▶️';
+      }
+    }
+
+    function fire(particleRatio, opts) {
+      confetti(Object.assign({
+        origin: { y: 0.7 }
+      }, opts, {
+        particleCount: Math.floor(200 * particleRatio)
+      }));
+    }
+
+    function fireConfettiBurst() {
+      fire(0.25, { spread: 26, startVelocity: 55 });
+      fire(0.2,  { spread: 60 });
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+      fire(0.1,  { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+      fire(0.1,  { spread: 120, startVelocity: 45 });
+    }
+
+    document.body.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(() => {
+          button.textContent = '⏸';
+        }).catch(err => {
+          console.log('Play failed:', err);
+        });
+      }
+      fireConfettiBurst();
+    }, { once: true });
+  </script>
+
+</body>
+</html>
