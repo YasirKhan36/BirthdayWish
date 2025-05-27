@@ -2,8 +2,7 @@ name: Update Birthday Pages
 
 on:
   schedule:
-    - cron: '0 21 * * *'   # midnight KSA (00:00)
-    - cron: '0 12 * * *'   # 3:00 PM KSA (15:00)
+    - cron: '0 5 * * *'   # 8:00 AM KSA time
   workflow_dispatch:
 
 jobs:
