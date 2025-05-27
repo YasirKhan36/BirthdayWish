@@ -1,0 +1,36 @@
+name: Update Birthday Pages
+
+on:
+  schedule:
+    - cron: '0 21 * * *'   # midnight KSA (00:00)
+    - cron: '0 12 * * *'   # 3:00 PM KSA (15:00)
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout repo
+      uses: actions/checkout@v3
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: 📦 Install Pillow
+      run: pip install Pillow
+
+    - name: 🚀 Run birthday script
+      run: python3 birthday_script.py
+        
+    - name: ✅ Commit and push changes
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add docs/
+        git commit -m "Auto-update birthday pages" || echo "No changes to commit"
+        git push
+    
+    
