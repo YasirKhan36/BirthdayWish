@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Happy Work Anniversary</title>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+body {margin:0;background:#1a1a1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif}
+img  {max-width:90%;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+p    {margin-top:20px;font-size:1.2em}
+</style></head><body>
+<img src="you!_anniversary.jpeg" alt="Anniversary"><p>Wishing you continued success 🎉</p>
+<script>
+var duration=10000,end=Date.now()+duration,defaults={startVelocity:30,spread:360,ticks:60,zIndex:0};
+function rand(min,max){return Math.random()*(max-min)+min;}
+var iv=setInterval(()=>{ var tl=end-Date.now(); if(tl<=0) return clearInterval(iv);
+  var cnt=50*(tl/duration);
+  confetti(Object.assign({},defaults,{particleCount:cnt,origin:{x:rand(0.1,0.3),y:Math.random()-0.2}}));
+  confetti(Object.assign({},defaults,{particleCount:cnt,origin:{x:rand(0.7,0.9),y:Math.random()-0.2}}));
+},250);
+</script></body></html>
