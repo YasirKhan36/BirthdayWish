@@ -62,22 +62,24 @@ def is_today(d):
 
 # Draw the name on a base image
 def draw_name_on_image(base_image_path, name, out_file):
-    img  = Image.open(base_image_path).convert("RGB")
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(str(FontPath), 36)
-
-    # decide what text to draw and where
+    img      = Image.open(base_image_path).convert("RGB")
+    draw     = ImageDraw.Draw(img)
+    font     = ImageFont.truetype(str(FontPath), 36)
     basename = os.path.basename(base_image_path)
-    if 'Anniversary' in basename:
+
+    if 'Anniversary' in basename and not basename.lower().endswith('_web.jpeg'):
+        # email anniversary image
         text = f"Happy Anniversary, {name}"
-        x, y = 785, 235  # anniversary coords
+        x, y = 785, 235
         draw.text((x, y), text, font=ImageFont.truetype(str(FontPath), 42), fill="white", spacing=-2)
     else:
+        # birthday or other
         text = name
         x, y = 865, 140    # birthday coords
         draw.text((x, y), text, font=font, fill="white", spacing=-2)
     img.save(out_file)
 
+# Draw the web-version anniversary image
 def draw_anniversary_web_image(name, out_file):
     img  = Image.open("Anniversary_web.jpeg").convert("RGB")
     draw = ImageDraw.Draw(img)
@@ -90,9 +92,9 @@ def draw_anniversary_web_image(name, out_file):
 
 # Generate HTML for birthdays
 def generate_birthday_page(name, img_path):
-    img_name = img_path.name
-    html     = img_path.with_suffix('.html')
-    html.write_text(f"""<!DOCTYPE html>
+    img_name  = img_path.name
+    html_path = img_path.with_suffix('.html')
+    html_path.write_text(f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>Happy Birthday</title>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
@@ -121,9 +123,9 @@ function launch(){{
 
 # Generate HTML for anniversaries
 def generate_anniversary_page(name, img_path):
-    img_name = img_path.name
-    html     = img_path.with_suffix('.html')
-    html.write_text(f"""<!DOCTYPE html>
+    img_name  = img_path.name
+    html_path = img_path.with_suffix('.html')
+    html_path.write_text(f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><title>Happy Work Anniversary</title>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <style>
@@ -144,8 +146,11 @@ var iv=setInterval(()=>{{ var tl=end-Date.now(); if(tl<=0) return clearInterval(
 """, encoding='utf-8')
 
 # Send email for either birthday or anniversary
-def send_email(name, email, img_path, subject):
-    url = f"https://yasirkhan36.github.io/BirthdayWish/{img_path.stem}.html"
+def send_email(name, email, img_path, subject, web_html_filename=None):
+    if web_html_filename:
+        url = f"https://yasirkhan36.github.io/BirthdayWish/{web_html_filename}"
+    else:
+        url = f"https://yasirkhan36.github.io/BirthdayWish/{img_path.stem}.html"
     msg = MIMEMultipart("related")
     msg['Subject'] = subject
     msg['From']    = str(Address(FROM_NAME, FROM_EMAIL))
@@ -188,36 +193,35 @@ def main():
             out = OutputDir / f"{safe}_birthday.jpeg"
             draw_name_on_image("BdayWish.jpeg", name, out)
             generate_birthday_page(name, out)
-            queue.append((name, email, out, f"Happy Birthday, {name.split()[0]}"))
+            queue.append((name, email, out, f"Happy Birthday, {name.split()[0]}", None))
 
         if is_today(p['anniversary']):
-              safe = name.lower().replace(" ", "_")
+            email_out = OutputDir / f"{safe}_anniversary.jpeg"
+            draw_name_on_image("Anniversary.jpeg", name, email_out)
 
-              # email image (plain template + name)
-              email_out = OutputDir / f"{safe}_anniversary.jpeg"
-              draw_name_on_image("Anniversary.jpeg", name, email_out)
+            web_out = OutputDir / f"{safe}_anniversary_web.jpeg"
+            draw_anniversary_web_image(name, web_out)
+            generate_anniversary_page(name, web_out)
 
-              # web image (special web template + full greeting)
-              web_out   = OutputDir / f"{safe}_anniversary_web.jpeg"
-              draw_anniversary_web_image(name, web_out)
-              generate_anniversary_page(name, web_out)
+            queue.append((
+                name,
+                email,
+                email_out,
+                f"Happy Work Anniversary, {name.split()[0]}",
+                web_out.with_suffix('.html').name
+            ))
 
-              queue.append((name,
-                            email,
-                            email_out,
-                            f"Happy Work Anniversary, {name.split()[0]}"))
-          
     subprocess.run(["git", "add", "docs/"])
     subprocess.run(["git", "commit", "-m", "Update pages"], check=False)
     subprocess.run(["git", "push"])
-    #time.sleep(5)
+    time.sleep(5)
 
-    for nm, em, ip, subj in queue:
+    for nm, em, ip, subj, web_html in queue:
         try:
-            send_email(nm, em, ip, subj)
+            send_email(nm, em, ip, subj, web_html)
             print(f"✅ Sent to {nm} <{em}>")
-        except Exception as e:
-            print(f"❌ Failed for {nm}: {e}")
+        except Exception as err:
+            print(f"❌ Failed for {nm}: {err}")
 
 if __name__ == "__main__":
     main()
